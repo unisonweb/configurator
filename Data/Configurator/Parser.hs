@@ -70,12 +70,11 @@ skipHWS = scan Space go $> ()
 
 ident :: Parser Name
 ident = do
-  n <- T.cons <$> satisfy isAlpha <*> A.takeWhile isCont
-  when (n == "import") $
-    throw (ParseError "" $ "reserved word (" ++ show n ++ ") used as identifier")
+  n <- T.cons <$> satisfy ((||) <$> isAlpha <*> (== '_')) <*> A.takeWhile isCont
+  when (n == "import") $ throw
+    (ParseError "" $ "reserved word (" ++ show n ++ ") used as identifier")
   return n
- where
-  isCont c = isAlphaNum c || c == '_' || c == '-'
+  where isCont c = isAlphaNum c || c == '_' || c == '-'
 
 value :: Parser Value
 value = mconcat [

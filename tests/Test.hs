@@ -11,7 +11,6 @@ import           Control.Monad
 import qualified Data.ByteString.Lazy.Char8 as L
 import           Data.Configurator
 import           Data.Configurator.Types
-import           Data.Functor
 import           Data.Int
 import           Data.Maybe
 import           Data.Text (Text)
@@ -46,43 +45,41 @@ withLoad name t = do
 
 withReload :: FilePath -> ([Maybe FilePath] -> Config -> IO ()) -> IO ()
 withReload name t = do
-    tmp   <- getTemporaryDirectory
-    temps <- forM (testFile name) $ \f -> do
-        exists <- doesFileExist (worth f)
-        if exists
-            then do
-                (p,h) <- openBinaryTempFile tmp "test.cfg"
-                L.hPut h =<< L.readFile (worth f)
-                hClose h
-                return (p <$ f, Just p)
-            else do
-                return (f, Nothing)
-    flip finally (mapM_ removeFile (catMaybes (map snd temps))) $ do
-        mb <- try $ autoReload autoConfig (map fst temps)
-        case mb of
-            Left (err :: SomeException) -> assertFailure (show err)
-            Right (cfg, tid) -> t (map snd temps) cfg >> killThread tid
+  tmp   <- getTemporaryDirectory
+  temps <- forM (testFile name) $ \f -> do
+    exists <- doesFileExist (worth f)
+    if exists
+      then do
+        (p, h) <- openBinaryTempFile tmp "test.cfg"
+        L.hPut h =<< L.readFile (worth f)
+        hClose h
+        return (p <$ f, Just p)
+      else return (f, Nothing)
+  flip finally (mapM_ removeFile $ mapMaybe snd temps) $ do
+    mb <- try $ autoReload autoConfig (map fst temps)
+    case mb of
+      Left  (err :: SomeException) -> assertFailure (show err)
+      Right (cfg, tid)             -> t (map snd temps) cfg >> killThread tid
 
 testFile :: FilePath -> [Worth FilePath]
 testFile name = [Required $ "tests" </> "resources" </> name]
 
 takeMVarTimeout :: Int -> MVar a -> IO (Maybe a)
 takeMVarTimeout millis v = do
-    w <- newEmptyMVar
-    tid <- forkIO $ do
-        putMVar w . Just =<< takeMVar v
-    forkIO $ do
-        threadDelay (millis * 1000)
-        killThread tid
-        tryPutMVar w Nothing
-        return ()
-    takeMVar w
+  w   <- newEmptyMVar
+  tid <- forkIO $ putMVar w . Just =<< takeMVar v
+  forkIO $ do
+    threadDelay (millis * 1000)
+    killThread tid
+    tryPutMVar w Nothing
+    return ()
+  takeMVar w
 
 loadTest :: Assertion
 loadTest =
   withLoad "pathological.cfg" $ \cfg -> do
     aa  <- lookup cfg "aa"
-    assertEqual "int property" aa $ (Just 1 :: Maybe Int)
+    assertEqual "int property" aa (Just 1 :: Maybe Int)
 
     ab  <- lookup cfg "ab"
     assertEqual "string property" ab (Just "foo" :: Maybe Text)
