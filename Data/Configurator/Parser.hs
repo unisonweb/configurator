@@ -16,6 +16,7 @@ module Data.Configurator.Parser
     , interp
     ) where
 
+import Control.Applicative ((<|>))
 import Control.Exception (throw)
 import Control.Monad (when)
 import Data.Attoparsec.Text as A
