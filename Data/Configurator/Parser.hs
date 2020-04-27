@@ -16,13 +16,13 @@ module Data.Configurator.Parser
     , interp
     ) where
 
-import Control.Applicative
 import Control.Exception (throw)
 import Control.Monad (when)
 import Data.Attoparsec.Text as A
 import Data.Bits (shiftL)
 import Data.Char (chr, isAlpha, isAlphaNum, isSpace)
 import Data.Configurator.Types.Internal
+import Data.Functor (($>))
 import Data.Monoid (Monoid(..))
 import Data.Text (Text)
 import Data.Text.Lazy.Builder (fromText, singleton, toLazyText)
@@ -31,7 +31,7 @@ import qualified Data.Text.Lazy as L
 
 topLevel :: Parser [Directive]
 topLevel = directives <* skipLWS <* endOfInput
-  
+
 directive :: Parser Directive
 directive =
   mconcat [
@@ -42,14 +42,14 @@ directive =
   ]
 
 directives :: Parser [Directive]
-directives = (skipLWS *> directive <* skipHWS) `sepBy`
-             (satisfy $ \c -> c == '\r' || c == '\n')
+directives = (skipLWS *> directive <* skipHWS)
+  `sepBy` satisfy (\c -> c == '\r' || c == '\n')
 
 data Skip = Space | Comment
 
 -- | Skip lines, comments, or horizontal white space.
 skipLWS :: Parser ()
-skipLWS = scan Space go *> pure ()
+skipLWS = scan Space go $> ()
   where go Space c | isSpace c = Just Space
         go Space '#'           = Just Comment
         go Space _             = Nothing
@@ -59,7 +59,7 @@ skipLWS = scan Space go *> pure ()
 
 -- | Skip comments or horizontal white space.
 skipHWS :: Parser ()
-skipHWS = scan Space go *> pure ()
+skipHWS = scan Space go $> ()
   where go Space ' '           = Just Space
         go Space '\t'          = Just Space
         go Space '#'           = Just Comment
@@ -79,10 +79,10 @@ ident = do
 
 value :: Parser Value
 value = mconcat [
-          string "on" *> pure (Bool True)
-        , string "off" *> pure (Bool False)
-        , string "true" *> pure (Bool True)
-        , string "false" *> pure (Bool False)
+          string "on" $> Bool True
+        , string "off" $> Bool False
+        , string "true" $> Bool True
+        , string "false" $> Bool False
         , String <$> string_
         , Number <$> rational
         , List <$> brackets '[' ']'
@@ -138,7 +138,7 @@ hexQuad = do
       if a <= 0xdbff && b >= 0xdc00 && b <= 0xdfff
         then return $! chr (((a - 0xd800) `shiftL` 10) + (b - 0xdc00) + 0x10000)
         else fail "invalid UTF-16 surrogates"
-                   
+
 -- | Parse a string interpolation spec.
 --
 -- The sequence @$$@ is treated as a single @$@ character.  The

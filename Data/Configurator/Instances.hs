@@ -3,7 +3,6 @@
 
 module Data.Configurator.Instances () where
 
-import Control.Applicative
 import Data.Configurator.Types.Internal
 import Data.Complex (Complex)
 import Data.Fixed (Fixed, HasResolution)
