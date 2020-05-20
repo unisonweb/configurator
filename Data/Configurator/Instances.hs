@@ -9,7 +9,7 @@ import Data.Fixed (Fixed, HasResolution)
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Ratio (Ratio, denominator, numerator)
-import Data.Word (Word, Word8, Word16, Word32, Word64)
+import Data.Word (Word8, Word16, Word32, Word64)
 import Foreign.C.Types (CDouble, CFloat)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as LB

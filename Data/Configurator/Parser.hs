@@ -24,7 +24,6 @@ import Data.Bits (shiftL)
 import Data.Char (chr, isAlpha, isAlphaNum, isSpace)
 import Data.Configurator.Types.Internal
 import Data.Functor (($>))
-import Data.Monoid (Monoid(..))
 import Data.Text (Text)
 import Data.Text.Lazy.Builder (fromText, singleton, toLazyText)
 import qualified Data.Text as T
