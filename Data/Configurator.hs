@@ -60,7 +60,6 @@ module Data.Configurator
     , getMap
     ) where
 
-import Control.Applicative ((<$>))
 import Control.Concurrent (ThreadId, forkIO, threadDelay)
 import Control.Exception (SomeException, evaluate, handle, throwIO, try)
 import Control.Monad (foldM, forM, forM_, join, when, msum)
@@ -70,7 +69,6 @@ import Data.Configurator.Types.Internal
 import Data.IORef (atomicModifyIORef, newIORef, readIORef)
 import Data.List (tails)
 import Data.Maybe (fromMaybe, isJust)
-import Data.Monoid (mconcat)
 import Data.Ratio (denominator, numerator)
 import Data.Text.Lazy.Builder (fromString, fromText, toLazyText)
 import Data.Text.Lazy.Builder.Int (decimal)
